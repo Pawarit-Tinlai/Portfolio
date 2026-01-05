@@ -1,0 +1,17 @@
+import csv
+
+def analyze_csv(filename):
+    with open(filename, newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        prices = [float(row["price"]) for row in reader]
+
+    return {
+        "max": max(prices),
+        "min": min(prices),
+        "average": sum(prices) / len(prices)
+    }
+
+
+# Example
+# CSV ต้องมี column ชื่อ price
+# print(analyze_csv("data.csv"))
