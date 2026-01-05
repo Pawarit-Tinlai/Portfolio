@@ -1,0 +1,14 @@
+embed
+
+{{ch,am,mag = character(),"Ammo","Magic Bullet"}}
+{{vmag,vam=ch.get_cc(mag) if ch.cc_exists(mag) else False , ch.get_cc(am) if ch.cc_exists(am) else False}}}
+{{maxmag,currentmag  = ch.get_cc_max(mag),ch.get_cc(mag)}}
+{{rl = maxmag-currentmag}}
+{{ch.mod_cc(am,-rl, strict=False),ch.mod_cc(mag,+rl, strict=False)}}
+
+-title "Reload"
+-image "https://media.discordapp.net/attachments/934157318889820191/938894390636711946/revolver-revolver-reload.gif"
+-desc "ก็รีโหลด {{rl}} นัดไง"
+-f "{{mag}}{{ ' (+'+str(rl)+')' if vmag else''}}|{{character().cc_str(mag) if ch.cc_exists(mag) else'No Counter'}}"
+-f "{{am}}{{ ' (-'+str(rl)+')' if vam else''}}|{{character().cc_str(am) if ch.cc_exists(am) else'No Counter'}}"
+-footer "Gunslinger รีโหลดแบบนี้ไง เลยไม่มีโปรใน Sleight of Hand"

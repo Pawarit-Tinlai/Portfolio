@@ -1,0 +1,17 @@
+embed 
+<drac2>
+a = argparse(&ARGS&)
+cType = "Strength" if a.get("str") else "Constitution" if a.get("con") else "Intelligence" if a.get("int") else "Wisdom" if a.get("wis") else "Charisma" if a.get("cha") else "Dexterity"
+cType = f'a{"n" if "I" in cType else ""} {cType}'
+rollstring = ["1d20","2d20kh1","2d20kl1"][a.adv()] + ("mi"+a.last("mi") if a.last("mi") else "mi10" if get_raw().get("settings",{}).get("talent", 0) and get_raw().skills.stealth >= dexterityMod+proficiencyBonus else "")+"+"+str(get_raw().skills.stealth+(strengthMod if a.get("str") else constitutionMod if a.get("con") else intelligenceMod if a.get("int") else wisdomMod if a.get("wis") else charismaMod if a.get("cha") else dexterityMod)-dexterityMod)+("+"+a.join("b","+") if a.last("b") else "")
+stroll = vroll(rollstring)
+
+combatTarget = ""
+if combat() and combat().me:
+    combatTarget = combat().me
+    combatTarget.remove_effect("stealth")
+    combatTarget.add_effect(f"Stealth {stroll.total}","")
+output = f'-title "{name} makes {cType} (Stealth) check to Hide!" -desc "{stroll}" -f "Hide Action|When you take the Hide action, you make {cType} (Stealth) check in an attempt to hide, following the rules for Hiding. If you succeed, you gain certain benefits, as described in the Unseen Attackers and Targets section.'+"\n\nYou can't hide from a creature that can see you. You must have total cover, be in a heavily obscured area, be invisible, or otherwise block the enemy's vision."+'" -f "Unseen Attackers and Targets|When a creature can\'t see you, you have advantage on attack rolls against it. If you are hidden—both unseen and unheard—when you make an attack, you give away your location when the attack hits or misses." -footer "Actions in Combat | PHB 192" -color {color}'+(f' -f "{combatTarget.name}|**Effect**: {combatTarget.get_effect("Stealth "+str(stroll.total))}"'  if combatTarget else "")
+
+return output
+</drac2>

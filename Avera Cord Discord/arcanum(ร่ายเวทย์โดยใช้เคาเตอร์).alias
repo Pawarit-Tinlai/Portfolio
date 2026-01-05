@@ -1,0 +1,78 @@
+<drac2>
+
+args = &ARGS&
+a = argparse(args)
+
+# Mystic Arcanum counters for each spell level
+arcanum_counters = {
+    6: "Mystic Arcanum Level 6",
+    7: "Mystic Arcanum Level 7",
+    8: "Mystic Arcanum Level 8",
+    9: "Mystic Arcanum Level 9"
+}
+
+# Load spell data from gvars and homebrew sources
+gvar = load_json(get_gvar("d56885c2-867f-4aba-80f0-f91fef63d38b"))
+gvar_ids = [
+    'dbf24b4e-b0d0-4ed8-bc7e-b36f7551843c',
+    'b88abc23-f4c1-4915-afc4-ae17401e8465',
+    '2b9cfc61-a574-480c-adea-33282fee6303',
+    '1d7b6d40-9b0a-441a-a6e6-4e6aa5f5787a',
+    'ad4623fa-c23e-4ad4-9aa0-44aad01ab461',
+    'be434045-cc38-4896-b3e6-cd03c8bdecc9',
+    'aaa5d37a-b8b2-46b2-9f6c-88617a753b37',
+    '35ebed14-3265-4ef0-8707-9f20f49014bb',
+    '481352b5-205c-41bb-9668-37389809552b',
+    '4f19e96a-b6d4-4020-a702-9b4a23eb482f',
+    'f1afaebc-3c78-48e7-9f50-6b4b425c2d22'
+]
+for g in gvar_ids:
+    gvar += load_json(get_gvar(g))
+
+homebrew = load_json(get_svar("brewspells", "[]")) + load_json(get("brewspells", "[]"))
+if homebrew:
+    for g in homebrew:
+        gvar += load_json(get_gvar(g))
+
+# Find the spell in gvar
+spell = None
+for s in gvar:
+    if args[0].lower() == s.name.lower():
+        spell = s
+        break
+if spell is None:
+    for s in gvar:
+        if args[0].lower() in s.name.lower():
+            spell = s
+            break
+if spell is None:
+    return err("I don't think that's a supported spell. Make sure it is spelled correctly and is in your `brewspells` if it's non-SRD.")
+
+# Ensure the spell level is between 6 and 9
+if spell.level < 6 or spell.level > 9:
+    return err(f"{spell.name} is not a valid Mystic Arcanum spell (must be level 6-9).")
+
+# Determine spell level to cast
+splevel = a.last("l", type_=int, default=spell.level)
+if splevel < spell.level or splevel > 9:
+    return err(f"You can only upcast {spell.name} to levels 6 through 9.")
+
+# Get the corresponding Mystic Arcanum counter for the cast level
+arcanum_cc = arcanum_counters.get(splevel)
+if not character().cc_exists(arcanum_cc):
+    return err(f"You don't have the {arcanum_cc} counter set up.")
+
+# Check if the counter has uses left
+if character().get_cc(arcanum_cc) < 1:
+    return err(f"You don't have any uses of {arcanum_cc} left.")
+
+# Deduct a use of the Mystic Arcanum counter
+character().mod_cc(arcanum_cc, -1)
+
+# Output spell casting information
+args.remove(args[0])
+out = [f'cast "{spell.name}" {" ".join(args)} -i']
+out.append(f'-f "{arcanum_cc} (-1)|{character().cc_str(arcanum_cc)}"')
+return " ".join(out)
+
+</drac2>

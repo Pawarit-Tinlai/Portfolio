@@ -1,0 +1,52 @@
+embed
+<drac2>
+# Baseline Variables
+args     = argparse(&ARGS&)
+c        = combat()
+grappler = args.last("c", name if not c or not c.current or c.me else c.current.name)
+target   = args.last("t")
+
+grapplerStatOverride = args.last("stat")
+targetStatOverride = args.last("tstat")
+
+shove    = args.last('shove')
+trip     = args.last('trip')
+
+gtype    = "Grappled" if not (shove or trip) else ' and '.join(i[1] for i in [(shove, "Shoved"), (trip, "Tripped")] if i[0])
+gtitle   = "grapple" if not (shove or trip) else ' and '.join(i[1] for i in [(shove, "shove"), (trip, "trip")] if i[0])
+
+title    = args.last('title', "")
+desc     = args.last('desc', "")
+thumb    = args.last('thumb', "")
+image    = args.last('image', "")
+
+# Are we in combat, and have a target and an grappler?
+if c and target and grappler:
+  # Lets split out our targs for context, for `-t OR1|adv` style args
+  grappler, aArgs  = (grappler.split('|') + [""])[:2]
+  target, tArgs    = (target.split('|') + [""])[:2]
+  grappler, target = c.get_combatant(grappler), c.get_combatant(target)
+else:
+  grappler, target = None, None
+
+# Do we have a *valid* target and grappler
+if grappler and target:
+  aOver,tOver = None, None
+  # Lets grab args for the grappler
+  if grappler.get_effect("Rage"):
+   aArgs += " adv"
+  # Handle using different modifier
+  if grapplerStatOverride:
+   aOver = grappler.skills.athletics.value + grappler.stats.get_mod(grapplerStatOverride) - grappler.stats.get_mod('strength')
+  args.add_context(grappler.name, argparse(aArgs))
+  args.set_context(grappler.name)
+  aDice  = grappler.skills.athletics.d20(args.adv(boolwise=True),mod_override=aOver)
+  aDice += '+' + args.join('b', '+') if args.last('b') else ''
+
+  # And now for the target
+  args.add_context(target.name, argparse(tArgs))
+  args.set_context(target.name)
+  # Note to self, add `acro` an `athl` for args to select this
+  if target.skills.athletics.value > target.skills.acrobatics.value and not args.last('acro'):
+    if target.get_effect("Rage"):
+      args.add_context(target.name, argparse(tArgs + " tadv"))

@@ -1,0 +1,52 @@
+embed <drac2>
+a=argparse(&ARGS&)
+out=[f' -title "{name} attacks with a Light Crossbow" ']
+g=load_json(get_gvar('62948e6e-7ca9-4db0-9b17-a72818b7e263'))
+r=roll(f"1d1-1")
+ch = character()
+i= a.get('i')
+dt=0
+
+for y in range(a.last('rr',1,int)):
+  dice         = ["1d20", "2d20kh1", "2d20kl1"][a.adv()]
+  bth          = '+'+a.join('b','+','') if a.get('b') else ''
+  btd          = '+'+a.join('d','+','') if a.get('d') else ''
+  attackMod    = max(dexterityMod, strengthMod)+proficiencyBonus
+  damageMod    = max(dexterityMod, strengthMod)
+  sne          = ceil(int(get('RogueLevel',0))/2)
+  bless        = "+1d4 [bless]" if "bless" in "&*&".lower() else ""
+  sneak        = f"+{sne}d6 [Sneak Attack]" if "sneak" in "&*&".lower() else ""
+  sharp        = "-5 [SharpShooter]" if "sharp" in "&*&".lower() else ""
+  shooter      = "+10 [SharpShooter]" if "sharp" in "&*&".lower() else ""
+  aroll        = vroll(f"{dice}{attackMod:+}{bless}{sharp}{bth}")
+  crit         = aroll.result.crit == 1 or 'crit' in a
+  checkMiss    = aroll.result.crit == 2 or 'miss' in a
+  check        = "(CRIT!!)" if crit else ""
+  droll        = "**Miss!**" if checkMiss else vroll(f"""1d10{damageMod:+}[piercing]{sneak}{shooter}{btd}""",multiply=2 if crit else 1)
+  aroll        = "Automatic miss!" if 'miss' in a else "Automatic Hit!" if 'hit' in a else aroll
+  Number       = 0 if checkMiss else droll.total
+  dt           = dt+Number
+
+  out.append(f'''
+-f "Attack {y+1} | **To Hit**: {aroll}
+**Damage {check}**: {droll}" ''')
+return ' '.join(out)
+</drac2>
+{{f''' -f "Total Damage|{dt}" '''if 'rr' in a else ''}}
+-f "Effect | ***Simple Ranged Weapon Attack.***
+Ammunition (range 80/320), Loading, Two-Handed"
+{{f''' -f "{g[r]['desc0']}" ''' if 'sneak' in a else '' }}
+{{f''' -f "{g[r]['desc1']}" ''' if 'bless' in a else '' }}
+{{f''' -f "{g[r]['desc2']}" ''' if 'sharp' in a else '' }}
+{{cc="Crossbow Bolts"}}
+{{x=character().cc_exists(cc)}}
+{{xmax = character().get_cc_max(cc) if x else False}}
+{{v=character().get_cc(cc) if x else False}}
+{{ '' if argparse(&ARGS&).get('i') else character().mod_cc(cc, -y-1) if v else ''}}
+{{xtext = (character().get_cc(cc)*"➷") + ((xmax-character().get_cc(cc))*" ☒") if x else False}}
+{{f'''-f "{cc} {f'(-{y+1})' if v else''}|{xtext if x else'No Counter'}" ''' if not  i  else " "}}
+
+-image "https://media.discordapp.net/attachments/934157318889820191/943171988900442193/10.gif"
+-thumb <image>
+-color <color>
+-footer "{{ctx.prefix+ctx.alias}} [-b #] [-d #] [adv/dis] [sharp] [bless] [sneak] [crit] [hit/miss] [i]"

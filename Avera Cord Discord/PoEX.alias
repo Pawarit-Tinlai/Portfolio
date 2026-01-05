@@ -1,0 +1,15 @@
+embed 
+<drac2>
+raw=character()
+desc = "You regain 10d4 + 20 hit points when you drink this potion. The potion's red liquid glimmers when agitated."
+r=vroll(f'10d4 + 20')
+
+raw.modify_hp(r.consolidated(), ignore_temp=False, overflow=False)
+R = f"Hit Point| {raw.hp_str()} (+{r}) |inline"
+
+T = f"{name} use Potion of Supreme Healing !!"
+</drac2>
+-title "{{T}}"
+-desc "{{desc}}"
+-f "{{R}}"
+-thumb https://media.discordapp.net/attachments/701796380364243005/1107789810690703441/96b13da3f55349950d5e84b74424c5fa.jpg

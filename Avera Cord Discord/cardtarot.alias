@@ -1,0 +1,6 @@
+embed {{g,c=load_json(get_gvar('1652a294-1c35-4879-a0cc-ae06505d8293')),22}}{{r=int("&1&") if "&1&".isdigit() else roll(f"1d{c}-1")}}
+-title "The fortune teller pulls a card and reads it to you from a {{c}} card Tarot Deck - {{g[r]['name']}}!"
+-desc "{{g[r]['desc']}}"
+-f "{{g[r]['ch']}}"
+-image "{{g[r]['image']}}"
+-footer "Tarot Deck アキラ 仲野 (Red)❤️#2516 |  !testcardtarot "

@@ -1,0 +1,101 @@
+embed <drac2>
+ch = character()
+args = &ARGS&
+out = [f' -title "{name} Character\'s basic information" ']
+help = args and args[0] in "help?"
+pp = 'perception'
+inv = 'investigation'
+ins = 'insight'
+eff = ch.skills[pp].adv
+obs = "+5 [observant]" if ("obs" in args or eff=="obs") and pp in ["perception","investigation"] else ""
+adv = "+5 [advantage]" if not ("dis" in args or eff=="dis") and ("adv" in args or eff=="adv") else ""
+dis = "-5 [disadvantage]" if not ("adv" in args or eff=="adv") and ("dis" in args or eff=="dis") else ""
+bpp = '+'+argparse(args).join('bpp','+') if argparse(args).get('bpp') else ''
+binv = '+'+argparse(args).join('binv','+') if argparse(args).get('binv') else ''
+bins = '+'+argparse(args).join('bins','+') if argparse(args).get('bins') else ''
+
+ability = {
+    "Artificer": "Intelligence",
+    "Bard": "Charisma",
+    "Cleric": "Wisdom",
+    "Druid": "Wisdom",
+    "Investigator": "Intelligence",
+    "Martyr": "Wisdom",
+    "Necromancer": "Wisdom",
+    "Paladin": "Charisma",
+    "Ranger": "Wisdom",
+    "Sorcerer": "Charisma",
+    "Warlock": "Charisma",
+    "Warmage": "Intelligence",
+    "Witch": "Charisma",
+    "Wizard": "Intelligence",
+    "Apologist": "Intelligence",
+    "Arbiter": "Wisdom",
+    "Battlepriest": "Wisdom",
+    "Chronicler": "Intelligence",
+    "Cultist": "Charisma",
+    "Evangelist": "Charisma",
+    "Explorer": "Intelligence",
+    "Factotum": "Charisma",
+    "Firebrand": "Charisma",
+    "Ghoul": "Charisma",
+    "Haruspex": "Wisdom",
+    "Inquisitor": "Intelligence",
+    "Magician": "Charisma",
+    "Maledictor": "Intelligence",
+    "Medium": "Wisdom",
+    "Mystic": "Wisdom",
+    "Oracle": "Wisdom",
+    "Prophet": "Charisma",
+    "Resurrectionist": "Wisdom",
+    "Shaman": "Wisdom",
+    "Skald": "Wisdom",
+    "Templar": "Wisdom",
+    "Totemist": "Charisma"
+}
+
+acm = []
+for cls,lvl in character().levels:
+  if cls in ability:
+    acm.append(f"[{ability[cls]}]")
+
+types={
+ "beyond":{
+  "url":"https://ddb.ac/characters/",
+  "name":"D&D Beyond"
+ },
+ "dicecloud":{
+  "url":"https://dicecloud.com/character/",
+  "name":"Dicecloud"
+ },
+ "google":{
+  "url":"https://docs.google.com/spreadsheets/d/",
+  "name":"Google Sheets"
+ }
+}
+
+out.append(f'''-desc "*ข้อมูลของท่านมีดังนี้ค่ะ คุณ <@{ctx.author.id}> ถ้าต้องการเพิ่ม !p[skill] นะคะ*" ''')
+out.append(f''' -f "Character sheet Link for {types[ch.sheet_type].name if ch.sheet_type in types else "a deprecated sheet system"}| คลิ๊กตรงนี้เลย >>> [{name}]({types[ch.sheet_type].url+ch.upstream.replace(ch.sheet_type+'-','') if ch.sheet_type in types else "Unknown"})" ''')
+out.append(f'''-f "Class|{ch.levels}|inline" 
+-f "Hit Point|{ch.hp_str()}|inline" 
+-f "Armor Class|{armor}|inline" 
+-f "Race|{ch.race.replace('MPMM', '') if 'MPMM' in ch.race else ch.race}|inline" 
+-f "Save DC|{ch.spellbook.dc or 'None'}|inline" 
+-f "Spell Bonus|{'+' if ch.spellbook.sab else ''} {ch.spellbook.sab or 'None'} {', '.join(set(acm))}|inline"
+-f "Passive Perception|{vroll(f"10+{ch.skills[pp].value}{obs}{adv}{dis}{bpp}")}|inline"
+-f "Passive Investigation|{ vroll(f"10+{ch.skills[inv].value}{obs}{adv}{dis}{binv}")}|inline"
+-f "Passive Insight|{vroll(f"10+{ch.skills[ins].value}{adv}{dis}{bins}")}|inline" ''')
+out.append(f'''-thumb {image} ''')
+out.append(f'''-color {color} ''')
+out.append(f'''-color {color} ''')
+footer_text = (
+    "คำสั่งเพิ่มเติม\n"
+    "!all #ดู Class , Hit Point , Armor Class และ Passives ของตัวละคร\n"
+    "!all obs #หากมี Feat Observant\n"
+    "!all adv/dis #หากมี Advantage/Disadvantage\n"
+    "!all -bpp # -binv # -bins # #เอาไว้เพิ่มตัวเลข ใน Passives\n"
+    "หากพบปัญหาติดต่อกับ アキラ 仲野 (Red)❤️#2516"
+)
+out.append(f'''-footer "{ctx.prefix+ctx.alias} [adv/dis] [obs] [help] [credit] {"| アキラ 仲野 (Red)❤️#2516 |" if "credit" in args else ""} {footer_text if help else ""}" ''')
+return ' '.join(out)
+</drac2>
